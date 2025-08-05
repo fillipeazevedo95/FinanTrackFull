@@ -128,3 +128,100 @@ export const despesas = {
     return { data, error }
   }
 }
+
+// Funções para configurações do usuário
+export const userSettings = {
+  // Buscar configurações do usuário
+  get: async (userId) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+    return { data, error }
+  },
+
+  // Criar ou atualizar configurações
+  upsert: async (settings) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .upsert(settings, { onConflict: 'user_id' })
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  // Deletar configurações (para exclusão de conta)
+  delete: async (userId) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .delete()
+      .eq('user_id', userId)
+    return { data, error }
+  }
+}
+
+// Funções para upload de avatar
+export const storage = {
+  // Upload de avatar
+  uploadAvatar: async (userId, file) => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}/avatar.${fileExt}`
+
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+
+    if (error) return { data: null, error }
+
+    // Obter URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
+
+    return { data: { path: data.path, publicUrl }, error: null }
+  },
+
+  // Deletar avatar
+  deleteAvatar: async (userId) => {
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .remove([`${userId}/avatar.jpg`, `${userId}/avatar.png`, `${userId}/avatar.jpeg`])
+    return { data, error }
+  }
+}
+
+// Funções para exportação de dados
+export const dataExport = {
+  // Exportar todos os dados do usuário
+  exportUserData: async (userId) => {
+    try {
+      // Buscar receitas
+      const { data: receitasData } = await receitas.getAll(userId)
+
+      // Buscar despesas
+      const { data: despesasData } = await despesas.getAll(userId)
+
+      // Buscar configurações
+      const { data: settingsData } = await userSettings.get(userId)
+
+      // Buscar dados do usuário
+      const { data: userData } = await auth.getCurrentUser()
+
+      const exportData = {
+        usuario: {
+          email: userData.user?.email,
+          created_at: userData.user?.created_at
+        },
+        configuracoes: settingsData,
+        receitas: receitasData || [],
+        despesas: despesasData || [],
+        exportado_em: new Date().toISOString()
+      }
+
+      return { data: exportData, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  }
+}
