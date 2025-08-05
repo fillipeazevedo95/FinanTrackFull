@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fundo com gradiente -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f1f5f9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fundo arredondado -->
+  <rect width="512" height="512" rx="80" fill="url(#bgGradient)"/>
+  
+  <!-- Sombra interna -->
+  <rect width="512" height="512" rx="80" fill="url(#bgGradient)" opacity="0.1"/>
+  
+  <!-- Ícone principal (cifrão) -->
+  <circle cx="256" cy="256" r="180" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+  
+  <!-- Símbolo do dólar estilizado -->
+  <path d="M256 120 L256 140 M256 372 L256 392 M200 180 L312 180 C330 180 344 194 344 212 C344 230 330 244 312 244 L200 244 M200 268 L312 268 C330 268 344 282 344 300 C344 318 330 332 312 332 L200 332" 
+        stroke="url(#iconGradient)" 
+        stroke-width="24" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+  
+  <!-- Detalhes decorativos -->
+  <circle cx="400" cy="112" r="24" fill="rgba(34,197,94,0.8)"/>
+  <path d="M388 106 L396 114 L408 102" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Gráfico pequeno -->
+  <path d="M80 380 L120 360 L160 340 L200 320" stroke="rgba(255,255,255,0.6)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <circle cx="80" cy="380" r="6" fill="rgba(255,255,255,0.8)"/>
+  <circle cx="120" cy="360" r="6" fill="rgba(255,255,255,0.8)"/>
+  <circle cx="160" cy="340" r="6" fill="rgba(255,255,255,0.8)"/>
+  <circle cx="200" cy="320" r="6" fill="rgba(255,255,255,0.8)"/>
+</svg>

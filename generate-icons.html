@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de Ícones PWA - FinanTrack</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+        .icon-item { text-align: center; }
+        button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0284c7; }
+    </style>
+</head>
+<body>
+    <h1>Gerador de Ícones PWA - FinanTrack</h1>
+    <p>Clique em "Gerar Ícones" para criar todos os ícones necessários para o PWA.</p>
+    
+    <button onclick="generateAllIcons()">Gerar Ícones</button>
+    <button onclick="downloadAll()">Baixar Todos</button>
+    
+    <div id="icons" class="icon-grid"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const canvases = {};
+
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Fundo com gradiente
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0ea5e9');
+            gradient.addColorStop(1, '#0284c7');
+            
+            // Desenhar fundo arredondado
+            const radius = size * 0.15;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+
+            // Desenhar símbolo do dólar
+            ctx.strokeStyle = 'white';
+            ctx.fillStyle = 'white';
+            ctx.lineWidth = size * 0.08;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const symbolSize = size * 0.4;
+
+            // Linha vertical do $
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - symbolSize * 0.7);
+            ctx.lineTo(centerX, centerY + symbolSize * 0.7);
+            ctx.stroke();
+
+            // S superior
+            ctx.beginPath();
+            ctx.arc(centerX - symbolSize * 0.15, centerY - symbolSize * 0.25, symbolSize * 0.25, 0, Math.PI, true);
+            ctx.stroke();
+
+            // S inferior
+            ctx.beginPath();
+            ctx.arc(centerX + symbolSize * 0.15, centerY + symbolSize * 0.25, symbolSize * 0.25, Math.PI, 0, true);
+            ctx.stroke();
+
+            // Adicionar brilho
+            const glowGradient = ctx.createRadialGradient(centerX, centerY - size * 0.3, 0, centerX, centerY - size * 0.3, size * 0.6);
+            glowGradient.addColorStop(0, 'rgba(255,255,255,0.3)');
+            glowGradient.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+
+            return canvas;
+        }
+
+        function generateAllIcons() {
+            const iconsDiv = document.getElementById('icons');
+            iconsDiv.innerHTML = '';
+
+            sizes.forEach(size => {
+                const canvas = createIcon(size);
+                canvases[size] = canvas;
+
+                const div = document.createElement('div');
+                div.className = 'icon-item';
+                div.innerHTML = `
+                    <h3>${size}x${size}</h3>
+                    <div>${canvas.outerHTML}</div>
+                    <button onclick="downloadIcon(${size})">Baixar</button>
+                `;
+                iconsDiv.appendChild(div);
+            });
+        }
+
+        function downloadIcon(size) {
+            const canvas = canvases[size];
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadAll() {
+            sizes.forEach(size => {
+                setTimeout(() => downloadIcon(size), size * 10); // Delay para não sobrecarregar
+            });
+        }
+
+        // Polyfill para roundRect (caso não seja suportado)
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>

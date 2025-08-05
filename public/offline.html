@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanTrack - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .features {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .features h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .features ul {
+            list-style: none;
+        }
+        
+        .features li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .home-btn {
+            background: white;
+            color: #0ea5e9;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .home-btn:hover {
+            background: #f1f5f9;
+        }
+        
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .online {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .offline {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .checking {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            📱
+        </div>
+        
+        <h1>FinanTrack</h1>
+        <p>Você está offline, mas ainda pode usar algumas funcionalidades do app!</p>
+        
+        <div class="features">
+            <h3>Disponível Offline:</h3>
+            <ul>
+                <li>Visualizar dados já carregados</li>
+                <li>Navegar entre páginas</li>
+                <li>Usar funcionalidades básicas</li>
+                <li>Dados serão sincronizados quando voltar online</li>
+            </ul>
+        </div>
+        
+        <div>
+            <button class="retry-btn" onclick="checkConnection()">
+                <span id="retry-text">Tentar Novamente</span>
+            </button>
+            <button class="home-btn" onclick="goHome()">
+                Ir para o App
+            </button>
+        </div>
+        
+        <div id="status" class="status offline">
+            <strong>Status:</strong> <span id="status-text">Offline</span>
+        </div>
+    </div>
+
+    <script>
+        let isChecking = false;
+
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            
+            if (navigator.onLine) {
+                status.className = 'status online';
+                statusText.textContent = 'Online - Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                status.className = 'status offline';
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        function checkConnection() {
+            if (isChecking) return;
+            
+            isChecking = true;
+            const retryBtn = document.querySelector('.retry-btn');
+            const retryText = document.getElementById('retry-text');
+            
+            retryBtn.classList.add('checking');
+            retryText.textContent = 'Verificando...';
+            
+            // Simular verificação de conexão
+            setTimeout(() => {
+                updateStatus();
+                retryBtn.classList.remove('checking');
+                retryText.textContent = 'Tentar Novamente';
+                isChecking = false;
+            }, 2000);
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Verificar status da conexão automaticamente
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        
+        // Verificação inicial
+        updateStatus();
+        
+        // Verificar conexão a cada 30 segundos
+        setInterval(updateStatus, 30000);
+    </script>
+</body>
+</html>

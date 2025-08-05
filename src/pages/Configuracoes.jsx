@@ -134,7 +134,7 @@ const Configuracoes = () => {
     }
   }
 
-  // Upload de avatar
+  // Upload de avatar (temporariamente desabilitado)
   const handleAvatarUpload = async (event) => {
     const file = event.target.files[0]
     if (!file) return
@@ -153,6 +153,10 @@ const Configuracoes = () => {
 
     setSaving(true)
     try {
+      // Por enquanto, vamos apenas simular o upload
+      // Quando o storage estiver configurado, descomente o código abaixo
+
+      /*
       const { data, error } = await storage.uploadAvatar(user.id, file)
       if (error) throw error
 
@@ -171,7 +175,9 @@ const Configuracoes = () => {
       if (settingsError) throw settingsError
 
       setSettings(prev => ({ ...prev, avatar_url: data.publicUrl }))
-      showMessage('success', 'Foto de perfil atualizada com sucesso!')
+      */
+
+      showMessage('success', 'Upload de avatar será implementado após configurar o storage!')
 
     } catch (error) {
       console.error('Erro ao fazer upload:', error)
