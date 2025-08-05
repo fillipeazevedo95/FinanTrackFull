@@ -12,16 +12,47 @@
     </style>
 </head>
 <body>
-    <h1>Gerador de Ícones PWA - FinanTrack</h1>
-    <p>Clique em "Gerar Ícones" para criar todos os ícones necessários para o PWA.</p>
+    <h1>Gerador Completo de Ícones PWA - FinanTrack</h1>
+    <p>Gera todos os ícones necessários para compatibilidade total com Apple, Android, Windows e PWA.</p>
+    <p><strong>Design:</strong> Saco de dinheiro verde + moeda dourada com $ + engrenagem azul</p>
+    <p><strong>Inclui:</strong> Apple Touch Icons, Android Icons, Favicons, Microsoft Tiles e código HTML completo</p>
     
     <button onclick="generateAllIcons()">Gerar Ícones</button>
     <button onclick="downloadAll()">Baixar Todos</button>
+    <button onclick="generateHTMLCode()" style="background: #22c55e;">Gerar Código HTML</button>
     
     <div id="icons" class="icon-grid"></div>
 
     <script>
-        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        // Todos os tamanhos necessários para compatibilidade completa
+        const iconSizes = [
+            // Apple Touch Icons
+            { size: 57, name: 'apple-icon-57x57.png', type: 'Apple Touch Icon' },
+            { size: 60, name: 'apple-icon-60x60.png', type: 'Apple Touch Icon' },
+            { size: 72, name: 'apple-icon-72x72.png', type: 'Apple Touch Icon' },
+            { size: 76, name: 'apple-icon-76x76.png', type: 'Apple Touch Icon' },
+            { size: 114, name: 'apple-icon-114x114.png', type: 'Apple Touch Icon' },
+            { size: 120, name: 'apple-icon-120x120.png', type: 'Apple Touch Icon' },
+            { size: 144, name: 'apple-icon-144x144.png', type: 'Apple Touch Icon' },
+            { size: 152, name: 'apple-icon-152x152.png', type: 'Apple Touch Icon' },
+            { size: 180, name: 'apple-icon-180x180.png', type: 'Apple Touch Icon' },
+
+            // Android Icons
+            { size: 192, name: 'android-icon-192x192.png', type: 'Android Icon' },
+
+            // Favicons
+            { size: 16, name: 'favicon-16x16.png', type: 'Favicon' },
+            { size: 32, name: 'favicon-32x32.png', type: 'Favicon' },
+            { size: 96, name: 'favicon-96x96.png', type: 'Favicon' },
+
+            // Microsoft Tile
+            { size: 144, name: 'ms-icon-144x144.png', type: 'Microsoft Tile' },
+
+            // PWA Icons (adicionais)
+            { size: 128, name: 'icon-128x128.png', type: 'PWA Icon' },
+            { size: 384, name: 'icon-384x384.png', type: 'PWA Icon' },
+            { size: 512, name: 'icon-512x512.png', type: 'PWA Icon' }
+        ];
         const canvases = {};
 
         function createIcon(size) {
@@ -30,53 +61,153 @@
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            // Fundo com gradiente
-            const gradient = ctx.createLinearGradient(0, 0, size, size);
-            gradient.addColorStop(0, '#0ea5e9');
-            gradient.addColorStop(1, '#0284c7');
-            
-            // Desenhar fundo arredondado
-            const radius = size * 0.15;
-            ctx.fillStyle = gradient;
+            // Configurações de escala
+            const scale = size / 512;
+            const strokeWidth = Math.max(2, size * 0.02);
+
+            // Limpar canvas
+            ctx.clearRect(0, 0, size, size);
+
+            // Configurações gerais
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // === SACO DE DINHEIRO ===
+
+            // Gradiente do saco (verde)
+            const bagGradient = ctx.createLinearGradient(0, 0, size, size);
+            bagGradient.addColorStop(0, '#86efac'); // green-300
+            bagGradient.addColorStop(0.5, '#4ade80'); // green-400
+            bagGradient.addColorStop(1, '#22c55e'); // green-500
+
+            // Corpo do saco
+            ctx.fillStyle = bagGradient;
             ctx.beginPath();
-            ctx.roundRect(0, 0, size, size, radius);
+            ctx.ellipse(size * 0.35, size * 0.65, size * 0.25, size * 0.3, 0, 0, 2 * Math.PI);
             ctx.fill();
 
-            // Desenhar símbolo do dólar
-            ctx.strokeStyle = 'white';
-            ctx.fillStyle = 'white';
-            ctx.lineWidth = size * 0.08;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            // Contorno do saco
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = strokeWidth * 2;
+            ctx.beginPath();
+            ctx.ellipse(size * 0.35, size * 0.65, size * 0.25, size * 0.3, 0, 0, 2 * Math.PI);
+            ctx.stroke();
 
-            const centerX = size / 2;
-            const centerY = size / 2;
-            const symbolSize = size * 0.4;
+            // Topo do saco
+            ctx.fillStyle = '#f97316'; // orange-500
+            ctx.beginPath();
+            ctx.roundRect(size * 0.15, size * 0.35, size * 0.4, size * 0.08, size * 0.04);
+            ctx.fill();
+            ctx.stroke();
+
+            // Cordão do saco (esquerda)
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = strokeWidth * 1.5;
+            ctx.beginPath();
+            ctx.moveTo(size * 0.22, size * 0.35);
+            ctx.lineTo(size * 0.22, size * 0.25);
+            ctx.stroke();
+
+            // Cordão do saco (centro)
+            ctx.beginPath();
+            ctx.moveTo(size * 0.35, size * 0.35);
+            ctx.lineTo(size * 0.35, size * 0.2);
+            ctx.stroke();
+
+            // Cordão do saco (direita)
+            ctx.beginPath();
+            ctx.moveTo(size * 0.48, size * 0.35);
+            ctx.lineTo(size * 0.48, size * 0.25);
+            ctx.stroke();
+
+            // Parte superior do saco (boca)
+            ctx.fillStyle = bagGradient;
+            ctx.beginPath();
+            ctx.roundRect(size * 0.12, size * 0.15, size * 0.46, size * 0.25, size * 0.08);
+            ctx.fill();
+            ctx.stroke();
+
+            // === MOEDA DE DÓLAR ===
+
+            // Círculo da moeda (amarelo/dourado)
+            const coinGradient = ctx.createRadialGradient(size * 0.35, size * 0.55, 0, size * 0.35, size * 0.55, size * 0.12);
+            coinGradient.addColorStop(0, '#fbbf24'); // yellow-400
+            coinGradient.addColorStop(1, '#f59e0b'); // yellow-500
+
+            ctx.fillStyle = coinGradient;
+            ctx.beginPath();
+            ctx.circle(size * 0.35, size * 0.55, size * 0.12);
+            ctx.fill();
+
+            // Contorno da moeda
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = strokeWidth * 1.5;
+            ctx.beginPath();
+            ctx.circle(size * 0.35, size * 0.55, size * 0.12);
+            ctx.stroke();
+
+            // Símbolo do dólar
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = strokeWidth * 1.2;
+            ctx.fillStyle = '#000000';
 
             // Linha vertical do $
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY - symbolSize * 0.7);
-            ctx.lineTo(centerX, centerY + symbolSize * 0.7);
+            ctx.moveTo(size * 0.35, size * 0.47);
+            ctx.lineTo(size * 0.35, size * 0.63);
             ctx.stroke();
 
-            // S superior
+            // S do dólar
             ctx.beginPath();
-            ctx.arc(centerX - symbolSize * 0.15, centerY - symbolSize * 0.25, symbolSize * 0.25, 0, Math.PI, true);
+            ctx.arc(size * 0.32, size * 0.52, size * 0.03, -Math.PI/2, Math.PI/2, false);
+            ctx.moveTo(size * 0.35, size * 0.55);
+            ctx.arc(size * 0.38, size * 0.58, size * 0.03, Math.PI/2, -Math.PI/2, false);
             ctx.stroke();
 
-            // S inferior
-            ctx.beginPath();
-            ctx.arc(centerX + symbolSize * 0.15, centerY + symbolSize * 0.25, symbolSize * 0.25, Math.PI, 0, true);
-            ctx.stroke();
+            // === ENGRENAGEM ===
 
-            // Adicionar brilho
-            const glowGradient = ctx.createRadialGradient(centerX, centerY - size * 0.3, 0, centerX, centerY - size * 0.3, size * 0.6);
-            glowGradient.addColorStop(0, 'rgba(255,255,255,0.3)');
-            glowGradient.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = glowGradient;
+            // Posição da engrenagem
+            const gearX = size * 0.75;
+            const gearY = size * 0.75;
+            const gearRadius = size * 0.15;
+
+            // Cor da engrenagem (azul)
+            const gearGradient = ctx.createRadialGradient(gearX, gearY, 0, gearX, gearY, gearRadius);
+            gearGradient.addColorStop(0, '#60a5fa'); // blue-400
+            gearGradient.addColorStop(1, '#3b82f6'); // blue-500
+
+            // Desenhar dentes da engrenagem
+            ctx.fillStyle = gearGradient;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = strokeWidth * 1.5;
+
             ctx.beginPath();
-            ctx.roundRect(0, 0, size, size, radius);
+            const teeth = 8;
+            const innerRadius = gearRadius * 0.7;
+            const outerRadius = gearRadius;
+
+            for (let i = 0; i < teeth * 2; i++) {
+                const angle = (i * Math.PI) / teeth;
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const x = gearX + Math.cos(angle) * radius;
+                const y = gearY + Math.sin(angle) * radius;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
             ctx.fill();
+            ctx.stroke();
+
+            // Círculo central da engrenagem
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.circle(gearX, gearY, gearRadius * 0.3);
+            ctx.fill();
+            ctx.stroke();
 
             return canvas;
         }
@@ -85,36 +216,100 @@
             const iconsDiv = document.getElementById('icons');
             iconsDiv.innerHTML = '';
 
-            sizes.forEach(size => {
-                const canvas = createIcon(size);
-                canvases[size] = canvas;
+            // Agrupar por tipo para melhor organização
+            const groupedIcons = {};
+            iconSizes.forEach(iconInfo => {
+                if (!groupedIcons[iconInfo.type]) {
+                    groupedIcons[iconInfo.type] = [];
+                }
+                groupedIcons[iconInfo.type].push(iconInfo);
+            });
 
-                const div = document.createElement('div');
-                div.className = 'icon-item';
-                div.innerHTML = `
-                    <h3>${size}x${size}</h3>
-                    <div>${canvas.outerHTML}</div>
-                    <button onclick="downloadIcon(${size})">Baixar</button>
-                `;
-                iconsDiv.appendChild(div);
+            // Gerar ícones agrupados por tipo
+            Object.keys(groupedIcons).forEach(type => {
+                const typeDiv = document.createElement('div');
+                typeDiv.innerHTML = `<h2 style="grid-column: 1/-1; margin: 20px 0 10px 0; color: #0ea5e9;">${type}</h2>`;
+                iconsDiv.appendChild(typeDiv);
+
+                groupedIcons[type].forEach(iconInfo => {
+                    const canvas = createIcon(iconInfo.size);
+                    canvases[iconInfo.name] = canvas;
+
+                    const div = document.createElement('div');
+                    div.className = 'icon-item';
+                    div.innerHTML = `
+                        <h3>${iconInfo.size}x${iconInfo.size}</h3>
+                        <div>${canvas.outerHTML}</div>
+                        <p style="font-size: 12px; color: #666; margin: 5px 0;">${iconInfo.name}</p>
+                        <button onclick="downloadIcon('${iconInfo.name}', ${iconInfo.size})">Baixar</button>
+                    `;
+                    iconsDiv.appendChild(div);
+                });
             });
         }
 
-        function downloadIcon(size) {
-            const canvas = canvases[size];
+        function downloadIcon(filename, size) {
+            const canvas = canvases[filename];
             const link = document.createElement('a');
-            link.download = `icon-${size}x${size}.png`;
+            link.download = filename;
             link.href = canvas.toDataURL();
             link.click();
         }
 
         function downloadAll() {
-            sizes.forEach(size => {
-                setTimeout(() => downloadIcon(size), size * 10); // Delay para não sobrecarregar
+            let delay = 0;
+            iconSizes.forEach(iconInfo => {
+                setTimeout(() => downloadIcon(iconInfo.name, iconInfo.size), delay);
+                delay += 200; // Delay de 200ms entre downloads
             });
         }
 
-        // Polyfill para roundRect (caso não seja suportado)
+        function generateHTMLCode() {
+            let htmlCode = `<!-- Ícones gerados para FinanTrack PWA -->\n`;
+            htmlCode += `<!-- Apple Touch Icons -->\n`;
+
+            iconSizes.forEach(iconInfo => {
+                if (iconInfo.type === 'Apple Touch Icon') {
+                    htmlCode += `<link rel="apple-touch-icon" sizes="${iconInfo.size}x${iconInfo.size}" href="/${iconInfo.name}">\n`;
+                } else if (iconInfo.type === 'Android Icon') {
+                    htmlCode += `<link rel="icon" type="image/png" sizes="${iconInfo.size}x${iconInfo.size}" href="/${iconInfo.name}">\n`;
+                } else if (iconInfo.type === 'Favicon') {
+                    htmlCode += `<link rel="icon" type="image/png" sizes="${iconInfo.size}x${iconInfo.size}" href="/${iconInfo.name}">\n`;
+                }
+            });
+
+            htmlCode += `<link rel="manifest" href="/manifest.json">\n`;
+            htmlCode += `<meta name="msapplication-TileColor" content="#0ea5e9">\n`;
+            htmlCode += `<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">\n`;
+            htmlCode += `<meta name="theme-color" content="#0ea5e9">`;
+
+            // Mostrar em modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                justify-content: center; z-index: 1000;
+            `;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white; padding: 20px; border-radius: 8px;
+                max-width: 80%; max-height: 80%; overflow: auto;
+            `;
+
+            content.innerHTML = `
+                <h3>Código HTML para o &lt;head&gt;</h3>
+                <textarea style="width: 100%; height: 300px; font-family: monospace; font-size: 12px;">${htmlCode}</textarea>
+                <br><br>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Fechar</button>
+                <button onclick="navigator.clipboard.writeText('${htmlCode.replace(/'/g, "\\'")}'); alert('Código copiado!')" style="background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">Copiar</button>
+            `;
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+        }
+
+        // Polyfills para métodos que podem não ser suportados
         if (!CanvasRenderingContext2D.prototype.roundRect) {
             CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
                 this.beginPath();
@@ -128,6 +323,13 @@
                 this.lineTo(x, y + radius);
                 this.quadraticCurveTo(x, y, x + radius, y);
                 this.closePath();
+            };
+        }
+
+        // Adicionar método circle para facilitar
+        if (!CanvasRenderingContext2D.prototype.circle) {
+            CanvasRenderingContext2D.prototype.circle = function(x, y, radius) {
+                this.arc(x, y, radius, 0, 2 * Math.PI);
             };
         }
     </script>

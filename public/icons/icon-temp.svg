@@ -1,40 +1,53 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Fundo com gradiente -->
   <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    <!-- Gradientes -->
+    <linearGradient id="bagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#86efac"/>
+      <stop offset="50%" style="stop-color:#4ade80"/>
+      <stop offset="100%" style="stop-color:#22c55e"/>
     </linearGradient>
+
+    <radialGradient id="coinGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fbbf24"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </radialGradient>
+
+    <radialGradient id="gearGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#60a5fa"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </radialGradient>
   </defs>
-  
-  <!-- Fundo arredondado -->
-  <rect width="512" height="512" rx="80" fill="url(#bgGradient)"/>
-  
-  <!-- Círculo de fundo para o símbolo -->
-  <circle cx="256" cy="256" r="180" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-  
+
+  <!-- Saco de dinheiro -->
+  <!-- Corpo do saco -->
+  <ellipse cx="179" cy="332" rx="128" ry="154" fill="url(#bagGradient)" stroke="#000" stroke-width="10"/>
+
+  <!-- Topo do saco -->
+  <rect x="77" y="179" width="204" height="41" rx="20" fill="#f97316" stroke="#000" stroke-width="10"/>
+
+  <!-- Cordões do saco -->
+  <line x1="113" y1="179" x2="113" y2="128" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+  <line x1="179" y1="179" x2="179" y2="102" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+  <line x1="246" y1="179" x2="246" y2="128" stroke="#000" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Parte superior do saco (boca) -->
+  <rect x="61" y="77" width="236" height="128" rx="41" fill="url(#bagGradient)" stroke="#000" stroke-width="10"/>
+
+  <!-- Moeda de dólar -->
+  <circle cx="179" cy="281" r="61" fill="url(#coinGradient)" stroke="#000" stroke-width="8"/>
+
   <!-- Símbolo do dólar -->
-  <g stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <!-- Linha vertical -->
-    <line x1="256" y1="140" x2="256" y2="372" />
-    
-    <!-- S superior -->
-    <path d="M200 180 L312 180 C330 180 344 194 344 212 C344 230 330 244 312 244 L200 244" />
-    
-    <!-- S inferior -->
-    <path d="M200 268 L312 268 C330 268 344 282 344 300 C344 318 330 332 312 332 L200 332" />
-  </g>
-  
-  <!-- Detalhes decorativos -->
-  <circle cx="400" cy="112" r="24" fill="rgba(34,197,94,0.8)"/>
-  <path d="M388 106 L396 114 L408 102" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  
-  <!-- Mini gráfico -->
-  <g stroke="rgba(255,255,255,0.6)" stroke-width="4" stroke-linecap="round" fill="none">
-    <path d="M80 380 L120 360 L160 340 L200 320" />
-    <circle cx="80" cy="380" r="6" fill="rgba(255,255,255,0.8)"/>
-    <circle cx="120" cy="360" r="6" fill="rgba(255,255,255,0.8)"/>
-    <circle cx="160" cy="340" r="6" fill="rgba(255,255,255,0.8)"/>
-    <circle cx="200" cy="320" r="6" fill="rgba(255,255,255,0.8)"/>
+  <line x1="179" y1="240" x2="179" y2="322" stroke="#000" stroke-width="6" stroke-linecap="round"/>
+  <path d="M164 256 A15 15 0 0 1 179 241 A15 15 0 0 1 194 256" stroke="#000" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M164 306 A15 15 0 0 0 179 321 A15 15 0 0 0 194 306" stroke="#000" stroke-width="6" stroke-linecap="round" fill="none"/>
+
+  <!-- Engrenagem -->
+  <g transform="translate(384, 384)">
+    <!-- Dentes da engrenagem -->
+    <path d="M0,-77 L15,-60 L15,-45 L30,-45 L45,-60 L77,0 L60,15 L45,15 L45,30 L60,45 L0,77 L-15,60 L-15,45 L-30,45 L-45,60 L-77,0 L-60,-15 L-45,-15 L-45,-30 L-60,-45 Z"
+          fill="url(#gearGradient)" stroke="#000" stroke-width="8"/>
+
+    <!-- Círculo central -->
+    <circle cx="0" cy="0" r="23" fill="#ffffff" stroke="#000" stroke-width="8"/>
   </g>
 </svg>
