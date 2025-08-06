@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Search } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Calendar } from 'lucide-react'
 import { receitas, auth } from '../supabase/client'
 
 const Receitas = () => {
@@ -9,6 +9,8 @@ const Receitas = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [filtroMes, setFiltroMes] = useState(new Date().getMonth() + 1)
+  const [filtroAno, setFiltroAno] = useState(new Date().getFullYear())
   const [showRecurringModal, setShowRecurringModal] = useState(false)
   const [recurringAction, setRecurringAction] = useState(null) // 'edit' ou 'delete'
   const [selectedRecurringItem, setSelectedRecurringItem] = useState(null)
@@ -176,10 +178,14 @@ const Receitas = () => {
     }
   }
 
-  const filteredReceitas = receitasData.filter(item =>
-    item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.categoria.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Filtrar por período e busca
+  const filteredReceitas = receitasData.filter(item => {
+    const itemDate = new Date(item.data)
+    const matchesPeriod = itemDate.getMonth() + 1 === filtroMes && itemDate.getFullYear() === filtroAno
+    const matchesSearch = item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesPeriod && matchesSearch
+  })
 
   const totalReceitas = filteredReceitas.reduce((sum, item) => sum + parseFloat(item.valor), 0)
 
@@ -199,13 +205,44 @@ const Receitas = () => {
           <h1 className="text-2xl font-bold text-gray-900">Receitas</h1>
           <p className="text-gray-600">Gerencie suas fontes de renda</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center space-x-2"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Nova Receita</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          {/* Filtros de Período */}
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-5 w-5 text-gray-400" />
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(parseInt(e.target.value))}
+              className="input-field w-auto"
+            >
+              {Array.from({length: 12}, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(filtroAno, i, 1).toLocaleDateString('pt-BR', { month: 'long' })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={filtroAno}
+              onChange={(e) => setFiltroAno(parseInt(e.target.value))}
+              className="input-field w-auto"
+            >
+              {Array.from({length: 6}, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <option key={year} value={year}>{year}</option>
+                )
+              })}
+            </select>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Nova Receita</span>
+          </button>
+        </div>
       </div>
 
       {/* Resumo */}

@@ -8,6 +8,8 @@ const Dashboard = () => {
   const [receitasData, setReceitasData] = useState([])
   const [despesasData, setDespesasData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filtroMes, setFiltroMes] = useState(new Date().getMonth() + 1)
+  const [filtroAno, setFiltroAno] = useState(new Date().getFullYear())
 
   useEffect(() => {
     const loadData = async () => {
@@ -34,12 +36,23 @@ const Dashboard = () => {
     loadData()
   }, [])
 
-  // Calcular totais (apenas despesas pagas)
-  const totalReceitas = receitasData.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
-  const totalDespesas = despesasData
+  // Filtrar dados por período selecionado
+  const filtrarPorPeriodo = (data) => {
+    return data.filter(item => {
+      const itemDate = new Date(item.data)
+      return itemDate.getMonth() + 1 === filtroMes && itemDate.getFullYear() === filtroAno
+    })
+  }
+
+  const receitasFiltradas = filtrarPorPeriodo(receitasData)
+  const despesasFiltradas = filtrarPorPeriodo(despesasData)
+
+  // Calcular totais do período selecionado (apenas despesas pagas)
+  const totalReceitas = receitasFiltradas.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
+  const totalDespesas = despesasFiltradas
     .filter(item => item.is_paid === true)
     .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
-  const totalDespesasPendentes = despesasData
+  const totalDespesasPendentes = despesasFiltradas
     .filter(item => item.is_paid === false)
     .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
   const saldo = totalReceitas - totalDespesas
@@ -91,7 +104,7 @@ const Dashboard = () => {
     const categoryData = {}
     const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899']
 
-    despesasData
+    despesasFiltradas
       .filter(item => item.is_paid === true)
       .forEach(item => {
         if (categoryData[item.categoria]) {
@@ -123,9 +136,43 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Visão geral das suas finanças</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Visão geral das suas finanças</p>
+        </div>
+
+        {/* Filtros de Período */}
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-5 w-5 text-gray-400" />
+            <select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(parseInt(e.target.value))}
+              className="input-field w-auto"
+            >
+              {Array.from({length: 12}, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(filtroAno, i, 1).toLocaleDateString('pt-BR', { month: 'long' })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={filtroAno}
+              onChange={(e) => setFiltroAno(parseInt(e.target.value))}
+              className="input-field w-auto"
+            >
+              {Array.from({length: 6}, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <option key={year} value={year}>{year}</option>
+                )
+              })}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Cards de resumo */}

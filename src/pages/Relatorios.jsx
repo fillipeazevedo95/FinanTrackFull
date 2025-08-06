@@ -85,7 +85,7 @@ const Relatorios = () => {
       .reduce((sum, item) => sum + parseFloat(item.valor), 0)
 
     evolucaoMensal.push({
-      mes: new Date(2024, i, 1).toLocaleDateString('pt-BR', { month: 'short' }),
+      mes: new Date(filtroAno, i, 1).toLocaleDateString('pt-BR', { month: 'short' }),
       receitas: receitasMes,
       despesas: despesasMes,
       saldo: receitasMes - despesasMes
@@ -131,7 +131,7 @@ const Relatorios = () => {
             >
               {Array.from({length: 12}, (_, i) => (
                 <option key={i + 1} value={i + 1}>
-                  {new Date(2024, i, 1).toLocaleDateString('pt-BR', { month: 'long' })}
+                  {new Date(filtroAno, i, 1).toLocaleDateString('pt-BR', { month: 'long' })}
                 </option>
               ))}
             </select>
@@ -143,9 +143,12 @@ const Relatorios = () => {
               onChange={(e) => setFiltroAno(parseInt(e.target.value))}
               className="input-field w-auto"
             >
-              <option value={2024}>2024</option>
-              <option value={2023}>2023</option>
-              <option value={2022}>2022</option>
+              {Array.from({length: 6}, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <option key={year} value={year}>{year}</option>
+                )
+              })}
             </select>
           </div>
         </div>
