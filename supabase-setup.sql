@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS despesas (
   valor DECIMAL(10,2) NOT NULL,
   categoria TEXT NOT NULL,
   data DATE NOT NULL,
+  is_paid BOOLEAN DEFAULT false,
   is_recurring BOOLEAN DEFAULT false,
   recurrence_type TEXT CHECK (recurrence_type IN ('fixed_monthly', 'custom_repeat')),
   recurrence_count INTEGER,
@@ -88,6 +89,7 @@ CREATE INDEX IF NOT EXISTS receitas_recurrence_group_idx ON receitas(recurrence_
 CREATE INDEX IF NOT EXISTS receitas_parent_transaction_idx ON receitas(parent_transaction_id);
 CREATE INDEX IF NOT EXISTS despesas_user_id_idx ON despesas(user_id);
 CREATE INDEX IF NOT EXISTS despesas_data_idx ON despesas(data);
+CREATE INDEX IF NOT EXISTS despesas_is_paid_idx ON despesas(is_paid);
 CREATE INDEX IF NOT EXISTS despesas_recurrence_group_idx ON despesas(recurrence_group_id);
 CREATE INDEX IF NOT EXISTS despesas_parent_transaction_idx ON despesas(parent_transaction_id);
 

@@ -274,6 +274,59 @@ export const despesas = {
       .eq('recurrence_group_id', recurrenceGroupId)
       .select()
     return { data, error }
+  },
+
+  // Marcar despesa como paga/não paga
+  updatePaymentStatus: async (id, isPaid) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .update({ is_paid: isPaid })
+      .eq('id', id)
+      .select()
+    return { data, error }
+  },
+
+  // Buscar apenas despesas pagas do usuário
+  getPaidOnly: async (userId) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_paid', true)
+      .order('data', { ascending: false })
+    return { data, error }
+  },
+
+  // Buscar apenas despesas não pagas do usuário
+  getUnpaidOnly: async (userId) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_paid', false)
+      .order('data', { ascending: false })
+    return { data, error }
+  },
+
+  // Obter estatísticas de pagamento
+  getPaymentStats: async (userId) => {
+    const { data: allExpenses, error } = await supabase
+      .from('despesas')
+      .select('valor, is_paid')
+      .eq('user_id', userId)
+
+    if (error) return { data: null, error }
+
+    const stats = {
+      total: allExpenses.reduce((sum, item) => sum + parseFloat(item.valor), 0),
+      paid: allExpenses.filter(item => item.is_paid).reduce((sum, item) => sum + parseFloat(item.valor), 0),
+      unpaid: allExpenses.filter(item => !item.is_paid).reduce((sum, item) => sum + parseFloat(item.valor), 0),
+      totalCount: allExpenses.length,
+      paidCount: allExpenses.filter(item => item.is_paid).length,
+      unpaidCount: allExpenses.filter(item => !item.is_paid).length
+    }
+
+    return { data: stats, error: null }
   }
 }
 

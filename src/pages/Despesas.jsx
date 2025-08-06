@@ -17,6 +17,7 @@ const Despesas = () => {
     valor: '',
     categoria: '',
     data: new Date().toISOString().split('T')[0],
+    isPaid: false,
     isRecurring: false,
     recurrenceType: '',
     recurrenceCount: ''
@@ -64,6 +65,7 @@ const Despesas = () => {
         valor: parseFloat(formData.valor),
         categoria: formData.categoria,
         data: formData.data,
+        is_paid: formData.isPaid,
         user_id: user.id
       }
 
@@ -96,6 +98,7 @@ const Despesas = () => {
         valor: '',
         categoria: '',
         data: new Date().toISOString().split('T')[0],
+        isPaid: false,
         isRecurring: false,
         recurrenceType: '',
         recurrenceCount: ''
@@ -118,6 +121,7 @@ const Despesas = () => {
         valor: item.valor.toString(),
         categoria: item.categoria,
         data: item.data,
+        isPaid: item.is_paid || false,
         isRecurring: false,
         recurrenceType: '',
         recurrenceCount: ''
@@ -163,6 +167,7 @@ const Despesas = () => {
             valor: selectedRecurringItem.valor.toString(),
             categoria: selectedRecurringItem.categoria,
             data: selectedRecurringItem.data,
+            isPaid: selectedRecurringItem.is_paid || false,
             isRecurring: false,
             recurrenceType: '',
             recurrenceCount: ''
@@ -179,12 +184,28 @@ const Despesas = () => {
     }
   }
 
+  const handleTogglePayment = async (item) => {
+    try {
+      const { error } = await despesas.updatePaymentStatus(item.id, !item.is_paid)
+      if (error) throw error
+      loadDespesas()
+    } catch (error) {
+      console.error('Erro ao atualizar status de pagamento:', error)
+    }
+  }
+
   const filteredDespesas = despesasData.filter(item =>
     item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const totalDespesas = filteredDespesas.reduce((sum, item) => sum + parseFloat(item.valor), 0)
+  const totalDespesasPagas = filteredDespesas
+    .filter(item => item.is_paid === true)
+    .reduce((sum, item) => sum + parseFloat(item.valor), 0)
+  const totalDespesasPendentes = filteredDespesas
+    .filter(item => item.is_paid === false)
+    .reduce((sum, item) => sum + parseFloat(item.valor), 0)
 
   if (loading) {
     return (
@@ -212,16 +233,38 @@ const Despesas = () => {
       </div>
 
       {/* Resumo */}
-      <div className="card">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500">Total de Despesas</p>
-            <p className="text-3xl font-bold text-danger-600">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="card">
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-500">Total Geral</p>
+            <p className="text-2xl font-bold text-gray-900">
               R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
+            <p className="text-xs text-gray-500">{filteredDespesas.length} despesas</p>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">{filteredDespesas.length} despesas</p>
+        </div>
+
+        <div className="card">
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-500">Despesas Pagas</p>
+            <p className="text-2xl font-bold text-green-600">
+              R$ {totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-gray-500">
+              {filteredDespesas.filter(item => item.is_paid).length} pagas
+            </p>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-500">Despesas Pendentes</p>
+            <p className="text-2xl font-bold text-red-600">
+              R$ {totalDespesasPendentes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-gray-500">
+              {filteredDespesas.filter(item => !item.is_paid).length} pendentes
+            </p>
           </div>
         </div>
       </div>
@@ -258,6 +301,9 @@ const Despesas = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Data
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ações
                 </th>
@@ -265,7 +311,7 @@ const Despesas = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredDespesas.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr key={item.id} className={`hover:bg-gray-50 ${item.is_paid ? 'bg-green-50' : 'bg-white'}`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       <div className="text-sm font-medium text-gray-900">{item.descricao}</div>
@@ -295,6 +341,18 @@ const Despesas = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(item.data).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <button
+                      onClick={() => handleTogglePayment(item)}
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        item.is_paid
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-red-100 text-red-800 hover:bg-red-200'
+                      }`}
+                    >
+                      {item.is_paid ? '✓ Pago' : '✗ Pendente'}
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -386,6 +444,20 @@ const Despesas = () => {
                         onChange={(e) => setFormData({...formData, data: e.target.value})}
                         className="input-field mt-1"
                       />
+                    </div>
+
+                    {/* Campo de Status de Pagamento */}
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isPaid"
+                        checked={formData.isPaid}
+                        onChange={(e) => setFormData({...formData, isPaid: e.target.checked})}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isPaid" className="ml-2 text-sm text-gray-700">
+                        Despesa paga
+                      </label>
                     </div>
 
                     {/* Campos de Recorrência */}
@@ -499,6 +571,7 @@ const Despesas = () => {
                         valor: '',
                         categoria: '',
                         data: new Date().toISOString().split('T')[0],
+                        isPaid: false,
                         isRecurring: false,
                         recurrenceType: '',
                         recurrenceCount: ''

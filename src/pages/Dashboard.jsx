@@ -34,9 +34,14 @@ const Dashboard = () => {
     loadData()
   }, [])
 
-  // Calcular totais
+  // Calcular totais (apenas despesas pagas)
   const totalReceitas = receitasData.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
-  const totalDespesas = despesasData.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
+  const totalDespesas = despesasData
+    .filter(item => item.is_paid === true)
+    .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
+  const totalDespesasPendentes = despesasData
+    .filter(item => item.is_paid === false)
+    .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0)
   const saldo = totalReceitas - totalDespesas
 
   // Função para processar dados por mês
@@ -61,16 +66,18 @@ const Dashboard = () => {
       }
     })
 
-    // Processar despesas
-    despesasData.forEach(item => {
-      const itemDate = new Date(item.data)
-      if (itemDate.getFullYear() === currentYear) {
-        const monthName = itemDate.toLocaleDateString('pt-BR', { month: 'short' })
-        if (monthlyData[monthName]) {
-          monthlyData[monthName].despesas += parseFloat(item.valor)
+    // Processar despesas (apenas pagas)
+    despesasData
+      .filter(item => item.is_paid === true)
+      .forEach(item => {
+        const itemDate = new Date(item.data)
+        if (itemDate.getFullYear() === currentYear) {
+          const monthName = itemDate.toLocaleDateString('pt-BR', { month: 'short' })
+          if (monthlyData[monthName]) {
+            monthlyData[monthName].despesas += parseFloat(item.valor)
+          }
         }
-      }
-    })
+      })
 
     return Object.entries(monthlyData).map(([mes, data]) => ({
       mes,
@@ -84,13 +91,15 @@ const Dashboard = () => {
     const categoryData = {}
     const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899']
 
-    despesasData.forEach(item => {
-      if (categoryData[item.categoria]) {
-        categoryData[item.categoria] += parseFloat(item.valor)
-      } else {
-        categoryData[item.categoria] = parseFloat(item.valor)
-      }
-    })
+    despesasData
+      .filter(item => item.is_paid === true)
+      .forEach(item => {
+        if (categoryData[item.categoria]) {
+          categoryData[item.categoria] += parseFloat(item.valor)
+        } else {
+          categoryData[item.categoria] = parseFloat(item.valor)
+        }
+      })
 
     return Object.entries(categoryData).map(([name, value], index) => ({
       name,
@@ -141,9 +150,23 @@ const Dashboard = () => {
               <TrendingDown className="h-8 w-8 text-danger-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Despesas</p>
+              <p className="text-sm font-medium text-gray-500">Despesas Pagas</p>
               <p className="text-2xl font-bold text-gray-900">
                 R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Calendar className="h-8 w-8 text-orange-600" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Despesas Pendentes</p>
+              <p className="text-2xl font-bold text-gray-900">
+                R$ {totalDespesasPendentes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </p>
             </div>
           </div>

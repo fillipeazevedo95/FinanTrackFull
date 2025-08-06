@@ -45,9 +45,9 @@ const Relatorios = () => {
   }
 
   const receitasFiltradas = filtrarPorPeriodo(receitasData)
-  const despesasFiltradas = filtrarPorPeriodo(despesasData)
+  const despesasFiltradas = filtrarPorPeriodo(despesasData).filter(item => item.is_paid === true)
 
-  // Dados para gráfico de barras por categoria
+  // Dados para gráfico de barras por categoria (apenas despesas pagas)
   const categoriasDespesas = despesasFiltradas.reduce((acc, item) => {
     acc[item.categoria] = (acc[item.categoria] || 0) + parseFloat(item.valor)
     return acc
