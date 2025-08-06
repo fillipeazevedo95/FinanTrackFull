@@ -239,9 +239,17 @@ const Dashboard = () => {
               <Calendar className="h-8 w-8 text-primary-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Este Mês</p>
+              <p className="text-sm font-medium text-gray-500">
+                {filtroMes === new Date().getMonth() + 1 && filtroAno === new Date().getFullYear()
+                  ? 'Este Mês'
+                  : 'Período Selecionado'
+                }
+              </p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Date().toLocaleDateString('pt-BR', { month: 'long' })}
+                {new Date(filtroAno, filtroMes - 1, 1).toLocaleDateString('pt-BR', {
+                  month: 'long',
+                  year: 'numeric'
+                })}
               </p>
             </div>
           </div>

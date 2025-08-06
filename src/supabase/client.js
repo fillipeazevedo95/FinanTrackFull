@@ -91,6 +91,7 @@ export const receitas = {
   createRecurring: async (receita, recurrenceType, recurrenceCount = null) => {
     const recurrenceGroupId = crypto.randomUUID()
     const transactions = []
+    let parentTransactionId = null
 
     if (recurrenceType === 'fixed_monthly') {
       // Para transações mensais fixas, criar 12 meses
@@ -98,14 +99,21 @@ export const receitas = {
         const transactionDate = new Date(receita.data)
         transactionDate.setMonth(transactionDate.getMonth() + i)
 
-        transactions.push({
+        const transaction = {
           ...receita,
           data: transactionDate.toISOString().split('T')[0],
           is_recurring: true,
           recurrence_type: recurrenceType,
           recurrence_group_id: recurrenceGroupId,
-          parent_transaction_id: i === 0 ? null : recurrenceGroupId
-        })
+          parent_transaction_id: parentTransactionId
+        }
+
+        transactions.push(transaction)
+
+        // A primeira transação será o parent das outras
+        if (i === 0) {
+          parentTransactionId = recurrenceGroupId // Temporário, será atualizado após inserção
+        }
       }
     } else if (recurrenceType === 'custom_repeat' && recurrenceCount) {
       // Para repetições personalizadas
@@ -113,15 +121,22 @@ export const receitas = {
         const transactionDate = new Date(receita.data)
         transactionDate.setMonth(transactionDate.getMonth() + i)
 
-        transactions.push({
+        const transaction = {
           ...receita,
           data: transactionDate.toISOString().split('T')[0],
           is_recurring: true,
           recurrence_type: recurrenceType,
           recurrence_count: recurrenceCount,
           recurrence_group_id: recurrenceGroupId,
-          parent_transaction_id: i === 0 ? null : recurrenceGroupId
-        })
+          parent_transaction_id: parentTransactionId
+        }
+
+        transactions.push(transaction)
+
+        // A primeira transação será o parent das outras
+        if (i === 0) {
+          parentTransactionId = recurrenceGroupId // Temporário, será atualizado após inserção
+        }
       }
     }
 
@@ -144,10 +159,28 @@ export const receitas = {
 
   // Deletar série de receitas recorrentes
   deleteRecurringSeries: async (recurrenceGroupId) => {
+    console.log('deleteRecurringSeries chamada para receitas:', recurrenceGroupId)
+
+    // Primeiro, vamos verificar quantas receitas existem com esse group_id
+    const { data: existingData, error: selectError } = await supabase
+      .from('receitas')
+      .select('*')
+      .eq('recurrence_group_id', recurrenceGroupId)
+
+    if (selectError) {
+      console.error('Erro ao buscar receitas da série:', selectError)
+      return { data: null, error: selectError }
+    }
+
+    console.log('Receitas encontradas para exclusão:', existingData?.length || 0, existingData)
+
     const { data, error } = await supabase
       .from('receitas')
       .delete()
       .eq('recurrence_group_id', recurrenceGroupId)
+      .select()
+
+    console.log('Resultado da exclusão:', { data, error })
     return { data, error }
   },
 
@@ -206,6 +239,7 @@ export const despesas = {
   createRecurring: async (despesa, recurrenceType, recurrenceCount = null) => {
     const recurrenceGroupId = crypto.randomUUID()
     const transactions = []
+    let parentTransactionId = null
 
     if (recurrenceType === 'fixed_monthly') {
       // Para transações mensais fixas, criar 12 meses
@@ -213,14 +247,21 @@ export const despesas = {
         const transactionDate = new Date(despesa.data)
         transactionDate.setMonth(transactionDate.getMonth() + i)
 
-        transactions.push({
+        const transaction = {
           ...despesa,
           data: transactionDate.toISOString().split('T')[0],
           is_recurring: true,
           recurrence_type: recurrenceType,
           recurrence_group_id: recurrenceGroupId,
-          parent_transaction_id: i === 0 ? null : recurrenceGroupId
-        })
+          parent_transaction_id: parentTransactionId
+        }
+
+        transactions.push(transaction)
+
+        // A primeira transação será o parent das outras
+        if (i === 0) {
+          parentTransactionId = recurrenceGroupId // Temporário, será atualizado após inserção
+        }
       }
     } else if (recurrenceType === 'custom_repeat' && recurrenceCount) {
       // Para repetições personalizadas
@@ -228,15 +269,22 @@ export const despesas = {
         const transactionDate = new Date(despesa.data)
         transactionDate.setMonth(transactionDate.getMonth() + i)
 
-        transactions.push({
+        const transaction = {
           ...despesa,
           data: transactionDate.toISOString().split('T')[0],
           is_recurring: true,
           recurrence_type: recurrenceType,
           recurrence_count: recurrenceCount,
           recurrence_group_id: recurrenceGroupId,
-          parent_transaction_id: i === 0 ? null : recurrenceGroupId
-        })
+          parent_transaction_id: parentTransactionId
+        }
+
+        transactions.push(transaction)
+
+        // A primeira transação será o parent das outras
+        if (i === 0) {
+          parentTransactionId = recurrenceGroupId // Temporário, será atualizado após inserção
+        }
       }
     }
 
@@ -259,10 +307,28 @@ export const despesas = {
 
   // Deletar série de despesas recorrentes
   deleteRecurringSeries: async (recurrenceGroupId) => {
+    console.log('deleteRecurringSeries chamada para despesas:', recurrenceGroupId)
+
+    // Primeiro, vamos verificar quantas despesas existem com esse group_id
+    const { data: existingData, error: selectError } = await supabase
+      .from('despesas')
+      .select('*')
+      .eq('recurrence_group_id', recurrenceGroupId)
+
+    if (selectError) {
+      console.error('Erro ao buscar despesas da série:', selectError)
+      return { data: null, error: selectError }
+    }
+
+    console.log('Despesas encontradas para exclusão:', existingData?.length || 0, existingData)
+
     const { data, error } = await supabase
       .from('despesas')
       .delete()
       .eq('recurrence_group_id', recurrenceGroupId)
+      .select()
+
+    console.log('Resultado da exclusão:', { data, error })
     return { data, error }
   },
 

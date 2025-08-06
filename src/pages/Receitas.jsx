@@ -145,13 +145,40 @@ const Receitas = () => {
 
   const handleRecurringAction = async (actionType, scope) => {
     try {
+      console.log('handleRecurringAction chamada:', { actionType, scope, selectedItem: selectedRecurringItem })
+      console.log('Funções disponíveis em receitas:', Object.keys(receitas))
+
       if (actionType === 'delete') {
         if (scope === 'single') {
+          console.log('Excluindo transação única:', selectedRecurringItem.id)
           const { error } = await receitas.delete(selectedRecurringItem.id)
-          if (error) throw error
+          if (error) {
+            console.error('Erro ao excluir transação única:', error)
+            throw error
+          }
         } else if (scope === 'all') {
+          console.log('Excluindo série completa:', selectedRecurringItem.recurrence_group_id)
+
+          if (!selectedRecurringItem.recurrence_group_id) {
+            console.error('recurrence_group_id não encontrado:', selectedRecurringItem)
+            alert('Erro: ID do grupo de recorrência não encontrado')
+            return
+          }
+
+          // Verificar se a função existe
+          if (typeof receitas.deleteRecurringSeries !== 'function') {
+            console.error('Função deleteRecurringSeries não encontrada em receitas')
+            alert('Erro: Função de exclusão de série não encontrada')
+            return
+          }
+
           const { error } = await receitas.deleteRecurringSeries(selectedRecurringItem.recurrence_group_id)
-          if (error) throw error
+          if (error) {
+            console.error('Erro ao excluir série:', error)
+            alert('Erro ao excluir série: ' + error.message)
+            throw error
+          }
+          console.log('Série excluída com sucesso')
         }
         loadReceitas()
       } else if (actionType === 'edit') {
@@ -175,6 +202,7 @@ const Receitas = () => {
       setRecurringAction(null)
     } catch (error) {
       console.error('Erro ao processar ação recorrente:', error)
+      alert('Erro ao processar ação: ' + error.message)
     }
   }
 
@@ -200,12 +228,12 @@ const Receitas = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Receitas</h1>
           <p className="text-gray-600">Gerencie suas fontes de renda</p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
           {/* Filtros de Período */}
           <div className="flex items-center space-x-2">
             <Calendar className="h-5 w-5 text-gray-400" />
@@ -220,8 +248,6 @@ const Receitas = () => {
                 </option>
               ))}
             </select>
-          </div>
-          <div className="flex items-center space-x-2">
             <select
               value={filtroAno}
               onChange={(e) => setFiltroAno(parseInt(e.target.value))}
@@ -237,7 +263,7 @@ const Receitas = () => {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="btn-primary flex items-center space-x-2"
+            className="btn-primary flex items-center justify-center space-x-2 w-full sm:w-auto"
           >
             <Plus className="h-5 w-5" />
             <span>Nova Receita</span>
