@@ -9,11 +9,17 @@ const Despesas = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showRecurringModal, setShowRecurringModal] = useState(false)
+  const [recurringAction, setRecurringAction] = useState(null) // 'edit' ou 'delete'
+  const [selectedRecurringItem, setSelectedRecurringItem] = useState(null)
   const [formData, setFormData] = useState({
     descricao: '',
     valor: '',
     categoria: '',
-    data: new Date().toISOString().split('T')[0]
+    data: new Date().toISOString().split('T')[0],
+    isRecurring: false,
+    recurrenceType: '',
+    recurrenceCount: ''
   })
 
   const categorias = [
@@ -54,8 +60,10 @@ const Despesas = () => {
 
     try {
       const despesaData = {
-        ...formData,
+        descricao: formData.descricao,
         valor: parseFloat(formData.valor),
+        categoria: formData.categoria,
+        data: formData.data,
         user_id: user.id
       }
 
@@ -63,8 +71,22 @@ const Despesas = () => {
         const { error } = await despesas.update(editingItem.id, despesaData)
         if (error) throw error
       } else {
-        const { error } = await despesas.create(despesaData)
-        if (error) throw error
+        // Verificar se é transação recorrente
+        if (formData.isRecurring && formData.recurrenceType) {
+          const recurrenceCount = formData.recurrenceType === 'custom_repeat'
+            ? parseInt(formData.recurrenceCount)
+            : null
+
+          const { error } = await despesas.createRecurring(
+            despesaData,
+            formData.recurrenceType,
+            recurrenceCount
+          )
+          if (error) throw error
+        } else {
+          const { error } = await despesas.create(despesaData)
+          if (error) throw error
+        }
       }
 
       setShowModal(false)
@@ -73,7 +95,10 @@ const Despesas = () => {
         descricao: '',
         valor: '',
         categoria: '',
-        data: new Date().toISOString().split('T')[0]
+        data: new Date().toISOString().split('T')[0],
+        isRecurring: false,
+        recurrenceType: '',
+        recurrenceCount: ''
       })
       loadDespesas()
     } catch (error) {
@@ -82,25 +107,75 @@ const Despesas = () => {
   }
 
   const handleEdit = (item) => {
-    setEditingItem(item)
-    setFormData({
-      descricao: item.descricao,
-      valor: item.valor.toString(),
-      categoria: item.categoria,
-      data: item.data
-    })
-    setShowModal(true)
+    if (item.is_recurring) {
+      setSelectedRecurringItem(item)
+      setRecurringAction('edit')
+      setShowRecurringModal(true)
+    } else {
+      setEditingItem(item)
+      setFormData({
+        descricao: item.descricao,
+        valor: item.valor.toString(),
+        categoria: item.categoria,
+        data: item.data,
+        isRecurring: false,
+        recurrenceType: '',
+        recurrenceCount: ''
+      })
+      setShowModal(true)
+    }
   }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir esta despesa?')) {
-      try {
-        const { error } = await despesas.delete(id)
-        if (error) throw error
-        loadDespesas()
-      } catch (error) {
-        console.error('Erro ao excluir despesa:', error)
+  const handleDelete = async (item) => {
+    if (item.is_recurring) {
+      setSelectedRecurringItem(item)
+      setRecurringAction('delete')
+      setShowRecurringModal(true)
+    } else {
+      if (window.confirm('Tem certeza que deseja excluir esta despesa?')) {
+        try {
+          const { error } = await despesas.delete(item.id)
+          if (error) throw error
+          loadDespesas()
+        } catch (error) {
+          console.error('Erro ao excluir despesa:', error)
+        }
       }
+    }
+  }
+
+  const handleRecurringAction = async (actionType, scope) => {
+    try {
+      if (actionType === 'delete') {
+        if (scope === 'single') {
+          const { error } = await despesas.delete(selectedRecurringItem.id)
+          if (error) throw error
+        } else if (scope === 'all') {
+          const { error } = await despesas.deleteRecurringSeries(selectedRecurringItem.recurrence_group_id)
+          if (error) throw error
+        }
+        loadDespesas()
+      } else if (actionType === 'edit') {
+        if (scope === 'single') {
+          setEditingItem(selectedRecurringItem)
+          setFormData({
+            descricao: selectedRecurringItem.descricao,
+            valor: selectedRecurringItem.valor.toString(),
+            categoria: selectedRecurringItem.categoria,
+            data: selectedRecurringItem.data,
+            isRecurring: false,
+            recurrenceType: '',
+            recurrenceCount: ''
+          })
+          setShowModal(true)
+        }
+        // Para 'all', seria necessário implementar uma lógica mais complexa
+      }
+      setShowRecurringModal(false)
+      setSelectedRecurringItem(null)
+      setRecurringAction(null)
+    } catch (error) {
+      console.error('Erro ao processar ação recorrente:', error)
     }
   }
 
@@ -192,7 +267,21 @@ const Despesas = () => {
               {filteredDespesas.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.descricao}</div>
+                    <div className="flex items-center space-x-2">
+                      <div className="text-sm font-medium text-gray-900">{item.descricao}</div>
+                      {item.is_recurring && (
+                        <div className="flex items-center space-x-1">
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {item.recurrence_type === 'fixed_monthly' ? 'Mensal' : 'Recorrente'}
+                          </span>
+                          {item.recurrence_type === 'custom_repeat' && item.recurrence_count && (
+                            <span className="text-xs text-gray-500">
+                              ({item.recurrence_count}x)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-danger-100 text-danger-800">
@@ -215,7 +304,7 @@ const Despesas = () => {
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item)}
                       className="text-danger-600 hover:text-danger-900"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -298,6 +387,101 @@ const Despesas = () => {
                         className="input-field mt-1"
                       />
                     </div>
+
+                    {/* Campos de Recorrência */}
+                    {!editingItem && (
+                      <div className="border-t pt-4 mt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Configurações de Recorrência</h4>
+
+                        <div className="space-y-3">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id="isRecurring"
+                              checked={formData.isRecurring}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                isRecurring: e.target.checked,
+                                recurrenceType: e.target.checked ? formData.recurrenceType : '',
+                                recurrenceCount: e.target.checked ? formData.recurrenceCount : ''
+                              })}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="isRecurring" className="ml-2 text-sm text-gray-700">
+                              Esta é uma despesa recorrente
+                            </label>
+                          </div>
+
+                          {formData.isRecurring && (
+                            <div className="ml-6 space-y-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Tipo de Recorrência
+                                </label>
+                                <div className="space-y-2">
+                                  <div className="flex items-center">
+                                    <input
+                                      type="radio"
+                                      id="fixed_monthly"
+                                      name="recurrenceType"
+                                      value="fixed_monthly"
+                                      checked={formData.recurrenceType === 'fixed_monthly'}
+                                      onChange={(e) => setFormData({
+                                        ...formData,
+                                        recurrenceType: e.target.value,
+                                        recurrenceCount: ''
+                                      })}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <label htmlFor="fixed_monthly" className="ml-2 text-sm text-gray-700">
+                                      Fixa Mensal (12 meses)
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <input
+                                      type="radio"
+                                      id="custom_repeat"
+                                      name="recurrenceType"
+                                      value="custom_repeat"
+                                      checked={formData.recurrenceType === 'custom_repeat'}
+                                      onChange={(e) => setFormData({
+                                        ...formData,
+                                        recurrenceType: e.target.value
+                                      })}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <label htmlFor="custom_repeat" className="ml-2 text-sm text-gray-700">
+                                      Repetição Personalizada
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {formData.recurrenceType === 'custom_repeat' && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Número de Repetições
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="60"
+                                    required
+                                    value={formData.recurrenceCount}
+                                    onChange={(e) => setFormData({...formData, recurrenceCount: e.target.value})}
+                                    className="input-field mt-1 w-24"
+                                    placeholder="Ex: 6"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Máximo de 60 repetições
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -314,7 +498,10 @@ const Despesas = () => {
                         descricao: '',
                         valor: '',
                         categoria: '',
-                        data: new Date().toISOString().split('T')[0]
+                        data: new Date().toISOString().split('T')[0],
+                        isRecurring: false,
+                        recurrenceType: '',
+                        recurrenceCount: ''
                       })
                     }}
                     className="btn-secondary mt-3 sm:mt-0"
@@ -323,6 +510,68 @@ const Despesas = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Transações Recorrentes */}
+      {showRecurringModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                {recurringAction === 'edit' ? 'Editar Despesa Recorrente' : 'Excluir Despesa Recorrente'}
+              </h3>
+
+              <p className="text-sm text-gray-600 mb-4">
+                Esta despesa faz parte de uma série recorrente. O que você gostaria de fazer?
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleRecurringAction(recurringAction, 'single')}
+                  className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  <div className="font-medium text-gray-900">
+                    {recurringAction === 'edit' ? 'Editar apenas esta despesa' : 'Excluir apenas esta despesa'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {recurringAction === 'edit'
+                      ? 'Modificar somente esta instância da despesa recorrente'
+                      : 'Remove apenas esta instância, mantendo as outras'
+                    }
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleRecurringAction(recurringAction, 'all')}
+                  className="w-full text-left p-3 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  <div className="font-medium text-gray-900">
+                    {recurringAction === 'edit' ? 'Editar toda a série' : 'Excluir toda a série'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {recurringAction === 'edit'
+                      ? 'Modificar todas as despesas desta série recorrente'
+                      : 'Remove todas as despesas desta série recorrente'
+                    }
+                  </div>
+                </button>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowRecurringModal(false)
+                    setSelectedRecurringItem(null)
+                    setRecurringAction(null)
+                  }}
+                  className="btn-secondary"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         </div>

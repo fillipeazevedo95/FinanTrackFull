@@ -85,6 +85,80 @@ export const receitas = {
       .delete()
       .eq('id', id)
     return { data, error }
+  },
+
+  // Criar receita recorrente
+  createRecurring: async (receita, recurrenceType, recurrenceCount = null) => {
+    const recurrenceGroupId = crypto.randomUUID()
+    const transactions = []
+
+    if (recurrenceType === 'fixed_monthly') {
+      // Para transações mensais fixas, criar 12 meses
+      for (let i = 0; i < 12; i++) {
+        const transactionDate = new Date(receita.data)
+        transactionDate.setMonth(transactionDate.getMonth() + i)
+
+        transactions.push({
+          ...receita,
+          data: transactionDate.toISOString().split('T')[0],
+          is_recurring: true,
+          recurrence_type: recurrenceType,
+          recurrence_group_id: recurrenceGroupId,
+          parent_transaction_id: i === 0 ? null : recurrenceGroupId
+        })
+      }
+    } else if (recurrenceType === 'custom_repeat' && recurrenceCount) {
+      // Para repetições personalizadas
+      for (let i = 0; i < recurrenceCount; i++) {
+        const transactionDate = new Date(receita.data)
+        transactionDate.setMonth(transactionDate.getMonth() + i)
+
+        transactions.push({
+          ...receita,
+          data: transactionDate.toISOString().split('T')[0],
+          is_recurring: true,
+          recurrence_type: recurrenceType,
+          recurrence_count: recurrenceCount,
+          recurrence_group_id: recurrenceGroupId,
+          parent_transaction_id: i === 0 ? null : recurrenceGroupId
+        })
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('receitas')
+      .insert(transactions)
+      .select()
+    return { data, error }
+  },
+
+  // Buscar receitas por grupo de recorrência
+  getByRecurrenceGroup: async (recurrenceGroupId) => {
+    const { data, error } = await supabase
+      .from('receitas')
+      .select('*')
+      .eq('recurrence_group_id', recurrenceGroupId)
+      .order('data', { ascending: true })
+    return { data, error }
+  },
+
+  // Deletar série de receitas recorrentes
+  deleteRecurringSeries: async (recurrenceGroupId) => {
+    const { data, error } = await supabase
+      .from('receitas')
+      .delete()
+      .eq('recurrence_group_id', recurrenceGroupId)
+    return { data, error }
+  },
+
+  // Atualizar série de receitas recorrentes
+  updateRecurringSeries: async (recurrenceGroupId, updates) => {
+    const { data, error } = await supabase
+      .from('receitas')
+      .update(updates)
+      .eq('recurrence_group_id', recurrenceGroupId)
+      .select()
+    return { data, error }
   }
 }
 
@@ -125,6 +199,80 @@ export const despesas = {
       .from('despesas')
       .delete()
       .eq('id', id)
+    return { data, error }
+  },
+
+  // Criar despesa recorrente
+  createRecurring: async (despesa, recurrenceType, recurrenceCount = null) => {
+    const recurrenceGroupId = crypto.randomUUID()
+    const transactions = []
+
+    if (recurrenceType === 'fixed_monthly') {
+      // Para transações mensais fixas, criar 12 meses
+      for (let i = 0; i < 12; i++) {
+        const transactionDate = new Date(despesa.data)
+        transactionDate.setMonth(transactionDate.getMonth() + i)
+
+        transactions.push({
+          ...despesa,
+          data: transactionDate.toISOString().split('T')[0],
+          is_recurring: true,
+          recurrence_type: recurrenceType,
+          recurrence_group_id: recurrenceGroupId,
+          parent_transaction_id: i === 0 ? null : recurrenceGroupId
+        })
+      }
+    } else if (recurrenceType === 'custom_repeat' && recurrenceCount) {
+      // Para repetições personalizadas
+      for (let i = 0; i < recurrenceCount; i++) {
+        const transactionDate = new Date(despesa.data)
+        transactionDate.setMonth(transactionDate.getMonth() + i)
+
+        transactions.push({
+          ...despesa,
+          data: transactionDate.toISOString().split('T')[0],
+          is_recurring: true,
+          recurrence_type: recurrenceType,
+          recurrence_count: recurrenceCount,
+          recurrence_group_id: recurrenceGroupId,
+          parent_transaction_id: i === 0 ? null : recurrenceGroupId
+        })
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('despesas')
+      .insert(transactions)
+      .select()
+    return { data, error }
+  },
+
+  // Buscar despesas por grupo de recorrência
+  getByRecurrenceGroup: async (recurrenceGroupId) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .select('*')
+      .eq('recurrence_group_id', recurrenceGroupId)
+      .order('data', { ascending: true })
+    return { data, error }
+  },
+
+  // Deletar série de despesas recorrentes
+  deleteRecurringSeries: async (recurrenceGroupId) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .delete()
+      .eq('recurrence_group_id', recurrenceGroupId)
+    return { data, error }
+  },
+
+  // Atualizar série de despesas recorrentes
+  updateRecurringSeries: async (recurrenceGroupId, updates) => {
+    const { data, error } = await supabase
+      .from('despesas')
+      .update(updates)
+      .eq('recurrence_group_id', recurrenceGroupId)
+      .select()
     return { data, error }
   }
 }

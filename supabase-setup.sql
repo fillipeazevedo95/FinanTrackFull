@@ -12,6 +12,11 @@ CREATE TABLE IF NOT EXISTS receitas (
   valor DECIMAL(10,2) NOT NULL,
   categoria TEXT NOT NULL,
   data DATE NOT NULL,
+  is_recurring BOOLEAN DEFAULT false,
+  recurrence_type TEXT CHECK (recurrence_type IN ('fixed_monthly', 'custom_repeat')),
+  recurrence_count INTEGER,
+  parent_transaction_id UUID,
+  recurrence_group_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -24,6 +29,11 @@ CREATE TABLE IF NOT EXISTS despesas (
   valor DECIMAL(10,2) NOT NULL,
   categoria TEXT NOT NULL,
   data DATE NOT NULL,
+  is_recurring BOOLEAN DEFAULT false,
+  recurrence_type TEXT CHECK (recurrence_type IN ('fixed_monthly', 'custom_repeat')),
+  recurrence_count INTEGER,
+  parent_transaction_id UUID,
+  recurrence_group_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -74,8 +84,12 @@ CREATE POLICY "Usuários podem deletar suas próprias despesas" ON despesas
 -- Índices para melhor performance
 CREATE INDEX IF NOT EXISTS receitas_user_id_idx ON receitas(user_id);
 CREATE INDEX IF NOT EXISTS receitas_data_idx ON receitas(data);
+CREATE INDEX IF NOT EXISTS receitas_recurrence_group_idx ON receitas(recurrence_group_id);
+CREATE INDEX IF NOT EXISTS receitas_parent_transaction_idx ON receitas(parent_transaction_id);
 CREATE INDEX IF NOT EXISTS despesas_user_id_idx ON despesas(user_id);
 CREATE INDEX IF NOT EXISTS despesas_data_idx ON despesas(data);
+CREATE INDEX IF NOT EXISTS despesas_recurrence_group_idx ON despesas(recurrence_group_id);
+CREATE INDEX IF NOT EXISTS despesas_parent_transaction_idx ON despesas(parent_transaction_id);
 
 -- Função para atualizar o campo updated_at automaticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
