@@ -492,3 +492,120 @@ export const dataExport = {
     }
   }
 }
+
+// Funções para perfil do usuário
+export const userProfile = {
+  // Buscar perfil do usuário
+  get: async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      // Se não encontrou o perfil, criar um novo
+      if (!data && !error) {
+        const newProfile = {
+          user_id: userId,
+          theme: 'light',
+          currency: 'BRL',
+          display_name: 'Usuário'
+        }
+
+        const { data: createdData, error: createError } = await supabase
+          .from('user_profiles')
+          .insert(newProfile)
+          .select()
+          .single()
+
+        return { data: createdData, error: createError }
+      }
+
+      return { data, error }
+    } catch (err) {
+      console.error('Erro ao buscar perfil:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  // Criar perfil do usuário
+  create: async (profileData) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .upsert(profileData, { onConflict: 'user_id' })
+        .select()
+        .single()
+      return { data, error }
+    } catch (err) {
+      console.error('Erro ao criar perfil:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  // Atualizar perfil do usuário
+  update: async (userId, updates) => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('user_id', userId)
+      .select()
+      .single()
+    return { data, error }
+  },
+
+  // Upload de avatar
+  uploadAvatar: async (userId, file) => {
+    try {
+      // Gerar nome único para o arquivo
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userId}/avatar.${fileExt}`
+
+      // Fazer upload do arquivo
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) throw uploadError
+
+      // Obter URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+
+      return { data: urlData.publicUrl, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  },
+
+  // Deletar avatar
+  deleteAvatar: async (userId) => {
+    try {
+      // Listar arquivos do usuário
+      const { data: files, error: listError } = await supabase.storage
+        .from('avatars')
+        .list(userId)
+
+      if (listError) throw listError
+
+      if (files && files.length > 0) {
+        // Deletar todos os arquivos do usuário
+        const filesToDelete = files.map(file => `${userId}/${file.name}`)
+        const { error: deleteError } = await supabase.storage
+          .from('avatars')
+          .remove(filesToDelete)
+
+        if (deleteError) throw deleteError
+      }
+
+      return { data: true, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  }
+}

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Search, Calendar } from 'lucide-react'
 import { receitas, auth } from '../supabase/client'
+import { useUser } from '../contexts/UserContext'
 
 const Receitas = () => {
-  const [user, setUser] = useState(null)
+  const { user, setUser, formatCurrency } = useUser()
+  const [userLocal, setUserLocal] = useState(null)
   const [receitasData, setReceitasData] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -277,7 +279,7 @@ const Receitas = () => {
           <div>
             <p className="text-sm font-medium text-gray-500">Total de Receitas</p>
             <p className="text-3xl font-bold text-success-600">
-              R$ {totalReceitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalReceitas)}
             </p>
           </div>
           <div className="text-right">
@@ -350,7 +352,7 @@ const Receitas = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-success-600">
-                      R$ {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatCurrency(parseFloat(item.valor))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

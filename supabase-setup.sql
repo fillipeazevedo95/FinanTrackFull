@@ -108,3 +108,37 @@ CREATE TRIGGER update_receitas_updated_at BEFORE UPDATE ON receitas
 
 CREATE TRIGGER update_despesas_updated_at BEFORE UPDATE ON despesas
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Tabela de perfil do usuário
+CREATE TABLE IF NOT EXISTS user_profiles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  avatar_url TEXT,
+  theme TEXT DEFAULT 'light' CHECK (theme IN ('light', 'dark')),
+  currency TEXT DEFAULT 'BRL' CHECK (currency IN ('BRL', 'USD', 'EUR')),
+  display_name TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para a tabela de perfil
+CREATE INDEX IF NOT EXISTS user_profiles_user_id_idx ON user_profiles(user_id);
+
+-- Trigger para atualizar updated_at na tabela de perfil
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Políticas RLS para user_profiles
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuários podem ver apenas seu próprio perfil" ON user_profiles
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem inserir apenas seu próprio perfil" ON user_profiles
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem atualizar apenas seu próprio perfil" ON user_profiles
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem deletar apenas seu próprio perfil" ON user_profiles
+  FOR DELETE USING (auth.uid() = user_id);

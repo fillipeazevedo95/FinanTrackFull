@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Search, Calendar } from 'lucide-react'
 import { despesas, auth } from '../supabase/client'
+import { useUser } from '../contexts/UserContext'
 
 const Despesas = () => {
-  const [user, setUser] = useState(null)
+  const { user, setUser, formatCurrency } = useUser()
+  const [userLocal, setUserLocal] = useState(null)
   const [despesasData, setDespesasData] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -300,8 +302,8 @@ const Despesas = () => {
         <div className="card">
           <div className="text-center">
             <p className="text-sm font-medium text-gray-500">Total Geral</p>
-            <p className="text-2xl font-bold text-gray-900">
-              R$ {totalDespesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {formatCurrency(totalDespesas)}
             </p>
             <p className="text-xs text-gray-500">{filteredDespesas.length} despesas</p>
           </div>
@@ -311,7 +313,7 @@ const Despesas = () => {
           <div className="text-center">
             <p className="text-sm font-medium text-gray-500">Despesas Pagas</p>
             <p className="text-2xl font-bold text-green-600">
-              R$ {totalDespesasPagas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalDespesasPagas)}
             </p>
             <p className="text-xs text-gray-500">
               {filteredDespesas.filter(item => item.is_paid).length} pagas
@@ -323,7 +325,7 @@ const Despesas = () => {
           <div className="text-center">
             <p className="text-sm font-medium text-gray-500">Despesas Pendentes</p>
             <p className="text-2xl font-bold text-red-600">
-              R$ {totalDespesasPendentes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalDespesasPendentes)}
             </p>
             <p className="text-xs text-gray-500">
               {filteredDespesas.filter(item => !item.is_paid).length} pendentes
@@ -399,7 +401,7 @@ const Despesas = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-danger-600">
-                      R$ {parseFloat(item.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatCurrency(parseFloat(item.valor))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
